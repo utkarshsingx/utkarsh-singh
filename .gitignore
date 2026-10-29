@@ -2,3 +2,7 @@ node_modules/
 .DS_Store
 .netlify/
 .gstack/
+
+# build output (Netlify runs `npm run build`)
+assets/techtext.js
+assets/tailwind.css

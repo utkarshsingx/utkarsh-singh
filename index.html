@@ -19,6 +19,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Geist+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="assets/tailwind.css">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Person","name":"Utkarsh Singh","alternateName":"utkarshsingx","jobTitle":"Lead Software Engineer","url":"https://utkarsh-singh-dev.netlify.app/","image":"https://avatars.githubusercontent.com/u/92610758?v=4","address":{"@type":"PostalAddress","addressLocality":"Greater Noida","addressRegion":"Uttar Pradesh","addressCountry":"IN"},"sameAs":["https://github.com/utkarshsingx","https://www.linkedin.com/in/utkarshsingx/","https://twitter.com/utkarshsingx","https://www.utkarshreads.me/","https://utkarshsingx.github.io/"]}
 </script>
@@ -56,9 +57,9 @@
     <span class="x l"></span><span class="x r"></span>
     <p class="hero__meta mono">Greater Noida, IN · <b>28.4744°N, 77.5040°E</b> · <span id="clock">--:--:--</span> IST</p>
 
-    <div class="namewrap" id="namewrap">
-      <h1 class="name" id="name">Utkarsh Sin<span class="ghost">g</span><span id="glyph">h</span></h1>
-      <div class="spec" id="spec" aria-hidden="true"></div>
+    <h1 class="sr">Utkarsh Singh</h1>
+    <div class="techtext" id="techtext-root">
+      <span class="techtext__fallback" aria-hidden="true">Utkarsh Singh</span>
     </div>
 
     <p class="hero__tag">I build platforms a few thousand people log into every day.</p>
@@ -401,11 +402,8 @@
   <section class="band sec" id="stack">
     <span class="x l"></span><span class="x r"></span>
     <h2 class="h2">stack.</h2>
-    <div class="stackbox" id="stackbox">
-      <button class="stack__reset" id="stackReset" type="button" aria-label="Drop the stack again"><svg><use href="#i-reset"/></svg></button>
-      <div class="stack__fallback" id="stackFallback"></div>
-    </div>
-    <p class="stack__hint">Drag them around. Everything here is something I have shipped with.</p>
+    <div class="stackbox" id="stack-root"></div>
+    <p class="stack__hint">Scroll in and they drop. Drag them, throw them, wait and they stack back up.</p>
   </section>
 
   <!-- ========== WRITING ========== -->
@@ -462,8 +460,8 @@
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.20.0/matter.min.js" integrity="sha512-6+7rTBmR6pRFe9fa0vCFjFaHZj/XYa7774bEBzRtxgdpIJOS++R3cKd6Prg/eJmxtsJotd8KAg4g57uuVQsZKA==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
 <script src="assets/data.js" defer></script>
 <script src="assets/main.js" defer></script>
+<script src="assets/techtext.js" defer></script>
 </body>
 </html>

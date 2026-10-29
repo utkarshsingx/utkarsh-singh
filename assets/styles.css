@@ -31,8 +31,8 @@
   --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --frame: clamp(14px, 3.2vw, 56px);
-  --pad: clamp(18px, 3vw, 44px);
-  --maxw: 1360px;
+  --pad: clamp(16px, 2.2vw, 30px);
+  --maxw: 1160px;
 }
 
 :root[data-theme="light"] {
@@ -89,8 +89,8 @@ img { display: block; max-width: 100%; }
 .frame i {
   position: absolute; top: 0; bottom: 0; width: 1px; background: var(--rule);
 }
-.frame i:nth-child(1) { left: var(--frame); }
-.frame i:nth-child(2) { right: var(--frame); }
+.frame i:nth-child(1) { left: max(var(--frame), calc(50% - var(--maxw) / 2)); }
+.frame i:nth-child(2) { right: max(var(--frame), calc(50% - var(--maxw) / 2)); }
 @media (max-width: 720px) { .frame { display: none; } }
 
 /* a + crosshair, used at band corners */
@@ -104,15 +104,23 @@ img { display: block; max-width: 100%; }
   position: relative; z-index: 2;
   max-width: var(--maxw);
   margin: 0 auto;
-  padding-inline: calc(var(--frame) + var(--pad));
+  padding-inline: var(--pad);
 }
-.band { position: relative; border-top: 1px solid var(--rule); }
-.band > .x { top: -5px; }
-.band > .x.l { left: calc(var(--frame) - 4px); }
-.band > .x.r { right: calc(var(--frame) - 4px); }
+.band { position: relative; }
+/* The horizontal rules run the full viewport; only the rails stop at the column. */
+.band::before {
+  content: ""; position: absolute; top: 0; left: 50%;
+  width: 100vw; height: 1px; margin-left: -50vw;
+  background: var(--rule); pointer-events: none;
+}
+.band > .x { top: -4px; }
+.band > .x.l { left: calc(var(--pad) * -1 - 4px); }
+.band > .x.r { right: calc(var(--pad) * -1 - 4px); }
 @media (max-width: 720px) { .band > .x { display: none; } }
 
 .hatch {
+  width: min(calc(100% - var(--frame) * 2), var(--maxw));
+  margin-inline: auto;
   height: 26px;
   background-image: repeating-linear-gradient(315deg, var(--rule-2) 0 1px, transparent 0 50%);
   background-size: 7px 7px;
@@ -196,57 +204,13 @@ img { display: block; max-width: 100%; }
 .hero__meta { color: var(--muted); margin: 0 0 clamp(26px, 5vh, 54px); }
 .hero__meta b { color: var(--fg-2); font-weight: 400; }
 
-.namewrap { position: relative; display: inline-block; max-width: 100%; }
-.name {
-  font-size: clamp(42px, 9.4vw, 132px);
-  font-weight: 700;
-  letter-spacing: -.035em;
-  line-height: 1;
-  margin: 0;
-  white-space: nowrap;
+.techtext { position: relative; width: 100%; height: clamp(132px, 16.5vw, 212px); }
+.techtext__fallback {
+  /* Shown until the island mounts, and if the bundle never loads. */
+  display: block; font-size: clamp(42px, 9vw, 124px); font-weight: 700;
+  letter-spacing: -.035em; line-height: 1; white-space: nowrap;
 }
-.name .ghost { color: var(--muted); opacity: .62; }
-
-/* type-spec overlay */
-.spec { position: absolute; inset: 0; pointer-events: none; }
-.spec__line {
-  position: absolute; left: -10px; height: 1px;
-  background: var(--accent-dim);
-}
-.spec__line::before, .spec__line::after {
-  content: ""; position: absolute; top: -2px; width: 5px; height: 5px;
-  background: var(--accent); opacity: .85;
-}
-.spec__line::before { left: 0; }
-.spec__line::after { right: 0; }
-.spec__label {
-  position: absolute; transform: translateY(-50%);
-  font-family: var(--mono); font-size: 11px; color: var(--muted);
-  white-space: nowrap;
-}
-.spec__sel {
-  position: absolute;
-  border: 1px dashed var(--accent);
-  background: var(--accent-soft);
-}
-.spec__sel i {
-  position: absolute; width: 5px; height: 5px;
-  background: var(--bg); border: 1px solid var(--accent);
-}
-.spec__sel i:nth-child(1) { left: -3px; top: -3px; }
-.spec__sel i:nth-child(2) { left: calc(50% - 2.5px); top: -3px; }
-.spec__sel i:nth-child(3) { right: -3px; top: -3px; }
-.spec__sel i:nth-child(4) { right: -3px; top: calc(50% - 2.5px); }
-.spec__sel i:nth-child(5) { right: -3px; bottom: -3px; }
-.spec__sel i:nth-child(6) { left: calc(50% - 2.5px); bottom: -3px; }
-.spec__sel i:nth-child(7) { left: -3px; bottom: -3px; }
-.spec__sel i:nth-child(8) { left: -3px; top: calc(50% - 2.5px); }
-.spec__dim {
-  position: absolute; font-family: var(--mono); font-size: 11px;
-  color: var(--muted); white-space: nowrap;
-}
-.spec__dim b { color: var(--accent); font-weight: 400; }
-@media (max-width: 860px) { .spec { display: none; } }
+.techtext:has(canvas) .techtext__fallback { display: none; }
 
 .hero__tag { font-size: clamp(17px, 1.7vw, 21px); color: var(--muted); margin: clamp(26px,4vh,40px) 0 clamp(26px,4vh,38px); font-weight: 300; }
 .hero__acts { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
@@ -400,22 +364,11 @@ img { display: block; max-width: 100%; }
 .repo__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-family: var(--mono); font-size: 11.5px; color: var(--faint); }
 
 /* ---------- 12. STACK (matter.js) ---------- */
-.stackbox { position: relative; border: 1px solid var(--rule); height: clamp(330px, 46vh, 460px); overflow: hidden; }
-.stackbox canvas { display: block; width: 100%; height: 100%; }
-.stack__reset {
-  position: absolute; top: 14px; right: 14px; z-index: 3;
-  width: 36px; height: 36px; border: 1px solid var(--rule-2); background: color-mix(in srgb, var(--bg) 80%, transparent);
-  color: var(--muted); border-radius: 4px; cursor: pointer; display: grid; place-items: center;
-  transition: color .16s, border-color .16s;
-}
-.stack__reset:hover { color: var(--accent); border-color: var(--accent); }
-.stack__reset svg { width: 16px; height: 16px; }
-.stack__fallback {
-  display: flex; flex-wrap: wrap; gap: 8px; padding: clamp(18px, 2vw, 28px); align-content: center; height: 100%;
-}
-.stack__fallback span {
-  font-family: var(--mono); font-size: 13px; padding: 7px 14px; border-radius: 999px;
-  background: var(--pill); color: var(--fg-2);
+.stackbox {
+  position: relative;
+  border: 1px solid var(--rule);
+  height: clamp(300px, 40vh, 404px);
+  overflow: hidden;
 }
 .stack__hint { font-family: var(--mono); font-size: 11.5px; color: var(--faint); margin: 12px 0 0; }
 

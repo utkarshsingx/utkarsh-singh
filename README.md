@@ -8,18 +8,41 @@ Companion site: [utkarshsingx.github.io](https://utkarshsingx.github.io/) (field
 
 ## Stack
 
-Static HTML, CSS and vanilla JS with no build step. One third-party library:
-[Matter.js](https://brm.io/matter-js/) drives the tumbling pill pile in `stack.`,
-loaded from cdnjs with subresource integrity.
+Hand-written HTML, CSS and vanilla JS for the page itself, plus one compiled
+React island for three [React Bits](https://reactbits.dev) components.
+
+| Component | Where | What it does |
+|---|---|---|
+| `TechText` | hero | The wordmark, drawn on canvas with live font metrics — cap height, x-height, baseline, descender — a selection frame that glides between glyphs, and letters you can drag or kick. |
+| `FallingText` | `stack.` | Every tool in the stack as a tile that drops, piles up, and springs back into place. |
+| `TargetCursor` | everywhere | A reticle that locks onto anything tagged `.cursor-target`. Fine pointers only, so touch is untouched. |
 
 ```
-index.html          every section, in order
-assets/styles.css   tokens + layout (dark default, light theme)
-assets/data.js      heatmap, stack pills, command-palette targets
-assets/main.js      theme, clock, heatmap, type-spec overlay, physics, palette
-assets/work/*.jpg   live screenshots of each linked project
-scripts/refresh.sh  re-pulls the GitHub numbers
+index.html            every section, in order
+assets/styles.css     tokens + layout (dark default, light theme)
+assets/data.js        heatmap and command-palette data
+assets/main.js        theme, clock, heatmap, nav, palette, cursor targets
+assets/work/*.jpg     live screenshots of each linked project
+src/*.tsx             the React Bits components, unmodified
+src/island.tsx        mounts them and feeds them the design tokens
+scripts/refresh.sh    re-pulls the GitHub numbers
 ```
+
+The components are copied in verbatim so they can be refreshed from React Bits
+later; everything site-specific lives in `src/island.tsx`. Tailwind is built with
+preflight **off** — the components need its utilities, but the rest of the page
+has its own design system and must not be reset.
+
+## Build
+
+```bash
+npm install
+npm run build      # tailwind utilities -> assets/tailwind.css, island -> assets/techtext.js
+npm run watch      # rebuild the island on change
+```
+
+Netlify runs `npm ci && npm run build` on deploy, so the two build outputs are
+gitignored.
 
 ## Design system
 
@@ -36,20 +59,18 @@ it is not an inverted dark theme.
 
 ## Notable pieces
 
-- **Type-spec overlay** on the hero name. Cap height, x-height, baseline and
-  descender are *measured*, not guessed: a zero-width inline probe gives the
-  exact baseline, and canvas `TextMetrics` gives the rest from the rendered font.
-  Resize or switch theme and it re-measures.
 - **Contribution heatmap** built from real daily counts, with level thresholds
   taken from quartiles of non-zero days.
-- **Physics stack** — Matter.js runs the simulation, but the pills are real DOM
-  so they keep the page's font and theming. Falls back to a static pill list if
-  the CDN is blocked.
 - **Command palette** — `⌘K`, `/` or `?`.
+- **Theme-aware components.** `main.js` dispatches a `themechange` event after
+  flipping `data-theme`; the island listens and re-renders the React Bits
+  components with the new `--fg` and `--accent` token values, because canvas
+  `fillStyle` cannot resolve a CSS variable.
 
 ## Running it locally
 
 ```bash
+npm install && npm run build
 python3 -m http.server 4188
 # → http://localhost:4188
 ```

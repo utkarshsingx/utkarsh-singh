@@ -78,91 +78,7 @@
     var tot = $("#hmTotal"); if (tot) tot.textContent = fmt(hm.total);
   })();
 
-  /* ---------- 4. TYPE-SPEC OVERLAY ----------
-     Guide positions are measured from the rendered font, not guessed:
-     a zero-width inline probe gives the exact baseline, and canvas
-     TextMetrics gives cap height, x-height and descender depth. */
-  (function () {
-    var wrap = $("#namewrap"), name = $("#name"), spec = $("#spec"), glyph = $("#glyph");
-    if (!wrap || !name || !spec || !glyph) return;
-
-    function metrics() {
-      var probe = document.createElement("span");
-      probe.style.cssText = "display:inline-block;width:0;height:0;vertical-align:baseline";
-      name.appendChild(probe);
-      var baseline = probe.getBoundingClientRect().top;
-      name.removeChild(probe);
-
-      var cs = getComputedStyle(name);
-      var font = cs.fontWeight + " " + cs.fontSize + " " + cs.fontFamily;
-      var c = document.createElement("canvas").getContext("2d");
-      c.font = font;
-      var cap = 0, xh = 0, desc = 0;
-      try {
-        cap = c.measureText("H").actualBoundingBoxAscent;
-        xh = c.measureText("x").actualBoundingBoxAscent;
-        desc = c.measureText("g").actualBoundingBoxDescent;
-      } catch (e) {}
-      var fs = parseFloat(cs.fontSize);
-      if (!cap) { cap = fs * 0.70; xh = fs * 0.50; desc = fs * 0.22; }
-      return { baseline: baseline, cap: cap, xh: xh, desc: desc };
-    }
-
-    function draw() {
-      spec.innerHTML = "";
-      if (window.innerWidth < 860) return;
-      var wr = wrap.getBoundingClientRect();
-      var m = metrics();
-      var baseY = m.baseline - wr.top;
-      var right = wr.width + 10;
-      var room = window.innerWidth - wr.right - 24;
-      var showLabels = room > 112;
-
-      [["cap height", baseY - m.cap], ["x-height", baseY - m.xh],
-       ["baseline", baseY], ["descender", baseY + m.desc]].forEach(function (g) {
-        var line = document.createElement("div");
-        line.className = "spec__line";
-        line.style.top = g[1] + "px";
-        line.style.width = (right + 10) + "px";
-        spec.appendChild(line);
-        if (!showLabels) return;
-        var lab = document.createElement("span");
-        lab.className = "spec__label";
-        lab.textContent = g[0];
-        lab.style.top = g[1] + "px";
-        lab.style.left = (right + 22) + "px";
-        spec.appendChild(lab);
-      });
-
-      // selection box around the final glyph
-      var gr = glyph.getBoundingClientRect();
-      var pad = 3;
-      var sel = document.createElement("div");
-      sel.className = "spec__sel";
-      sel.style.left = (gr.left - wr.left - pad) + "px";
-      sel.style.top = (baseY - m.cap - pad) + "px";
-      sel.style.width = (gr.width + pad * 2) + "px";
-      sel.style.height = (m.cap + pad * 2) + "px";
-      for (var i = 0; i < 8; i++) sel.appendChild(document.createElement("i"));
-      spec.appendChild(sel);
-
-      var dim = document.createElement("span");
-      dim.className = "spec__dim";
-      dim.innerHTML = "h &nbsp;" + Math.round(gr.width) + " <b>&times;</b> " + Math.round(m.cap);
-      dim.style.left = (gr.left - wr.left - pad) + "px";
-      dim.style.top = (baseY - m.cap - pad - 20) + "px";
-      spec.appendChild(dim);
-    }
-
-    var raf;
-    function schedule() { cancelAnimationFrame(raf); raf = requestAnimationFrame(draw); }
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
-    schedule();
-    window.addEventListener("resize", schedule);
-    window.addEventListener("themechange", schedule);
-  })();
-
-  /* ---------- 5. REVEAL (fails visible) ---------- */
+  /* ---------- 4. REVEAL (fails visible) ---------- */
   (function () {
     var items = [].slice.call(document.querySelectorAll("[data-r]"));
     if (!items.length) return;
@@ -175,7 +91,7 @@
     setTimeout(showAll, 2500);   // nothing stays hidden if the observer never fires
   })();
 
-  /* ---------- 6. NAV ACTIVE ---------- */
+  /* ---------- 5. NAV ACTIVE ---------- */
   (function () {
     var links = [].slice.call(document.querySelectorAll(".nav__links a"));
     if (!links.length || !("IntersectionObserver" in window)) return;
@@ -192,129 +108,7 @@
     secs.forEach(function (s) { io.observe(s); });
   })();
 
-  /* ---------- 7. STACK PILE (Matter.js physics, DOM-rendered) ---------- */
-  (function () {
-    var box = $("#stackbox"), fb = $("#stackFallback");
-    if (!box || !fb || !D.stack) return;
-
-    // Build the pills as real DOM so they keep the page's type and theming.
-    var pills = D.stack.map(function (s) {
-      var el = document.createElement("span");
-      el.textContent = s[0];
-      el.style.cssText =
-        "position:absolute;left:0;top:0;display:inline-flex;align-items:center;gap:8px;" +
-        "font-family:var(--sans);font-size:15px;font-weight:500;white-space:nowrap;" +
-        "padding:9px 16px;border-radius:999px;will-change:transform;" +
-        "background:" + s[1] + ";color:" + s[2] + ";" +
-        // keeps near-black pills (Next.js, Vercel, Expo) legible on a near-black page
-        "box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);";
-      return el;
-    });
-
-    function fallback() {
-      fb.innerHTML = "";
-      D.stack.forEach(function (s) {
-        var el = document.createElement("span");
-        el.textContent = s[0];
-        fb.appendChild(el);
-      });
-    }
-
-    function start() {
-      var M = window.Matter;
-      if (!M) return fallback();
-      var W = box.clientWidth, H = box.clientHeight;
-      if (!W || !H) return fallback();
-
-      fb.remove();
-      var layer = document.createElement("div");
-      layer.style.cssText = "position:absolute;inset:0;overflow:hidden";
-      layer.setAttribute("aria-hidden", "true");
-      box.appendChild(layer);
-      pills.forEach(function (p) { layer.appendChild(p); });
-
-      var engine = M.Engine.create();
-      engine.gravity.y = 1;
-      var world = engine.world;
-      var wallOpts = { isStatic: true, restitution: .2, render: { visible: false } };
-      var walls = [
-        M.Bodies.rectangle(W / 2, H + 40, W * 2, 80, wallOpts),
-        M.Bodies.rectangle(-40, H / 2, 80, H * 4, wallOpts),
-        M.Bodies.rectangle(W + 40, H / 2, 80, H * 4, wallOpts)
-      ];
-      M.Composite.add(world, walls);
-
-      var bodies = pills.map(function (p, i) {
-        var w = p.offsetWidth, h = p.offsetHeight;
-        var b = M.Bodies.rectangle(
-          40 + Math.random() * Math.max(1, W - 80),
-          -60 - Math.random() * 900,
-          w, h,
-          { chamfer: { radius: h / 2 }, restitution: .32, friction: .42, frictionAir: .012, density: .0012 }
-        );
-        b.plugin = { w: w, h: h, el: p };
-        return b;
-      });
-      M.Composite.add(world, bodies);
-
-      var mouse = M.Mouse.create(box);
-      var mc = M.MouseConstraint.create(engine, { mouse: mouse, constraint: { stiffness: .18, render: { visible: false } } });
-      M.Composite.add(world, mc);
-      // Let the page keep scrolling over the canvas area.
-      mouse.element.removeEventListener("wheel", mouse.mousewheel);
-      mouse.element.removeEventListener("DOMMouseScroll", mouse.mousewheel);
-
-      var runner = M.Runner.create();
-      M.Runner.run(runner, engine);
-
-      (function paint() {
-        bodies.forEach(function (b) {
-          var p = b.plugin;
-          p.el.style.transform =
-            "translate(" + (b.position.x - p.w / 2) + "px," + (b.position.y - p.h / 2) + "px) rotate(" + b.angle + "rad)";
-        });
-        requestAnimationFrame(paint);
-      })();
-
-      function drop() {
-        bodies.forEach(function (b) {
-          M.Body.setPosition(b, { x: 40 + Math.random() * Math.max(1, box.clientWidth - 80), y: -60 - Math.random() * 900 });
-          M.Body.setVelocity(b, { x: 0, y: 0 });
-          M.Body.setAngularVelocity(b, 0);
-          M.Body.setAngle(b, (Math.random() - .5) * .6);
-        });
-      }
-      var rst = $("#stackReset"); if (rst) rst.addEventListener("click", drop);
-
-      var rt;
-      window.addEventListener("resize", function () {
-        clearTimeout(rt);
-        rt = setTimeout(function () {
-          var nW = box.clientWidth, nH = box.clientHeight;
-          M.Body.setPosition(walls[0], { x: nW / 2, y: nH + 40 });
-          M.Body.setPosition(walls[2], { x: nW + 40, y: nH / 2 });
-        }, 180);
-      });
-    }
-
-    // Only run the pile once it is on screen, and only if Matter actually loaded.
-    fallback();
-    var began = false;
-    function begin() {
-      if (began) return; began = true;
-      // The CDN script is deferred; wait a tick for it if needed.
-      if (window.Matter) start();
-      else setTimeout(function () { window.Matter ? start() : null; }, 900);
-    }
-    if ("IntersectionObserver" in window) {
-      var io = new IntersectionObserver(function (es, o) {
-        es.forEach(function (e) { if (e.isIntersecting) { o.disconnect(); begin(); } });
-      }, { rootMargin: "120px" });
-      io.observe(box);
-    } else { begin(); }
-  })();
-
-  /* ---------- 8. COMMAND PALETTE ---------- */
+  /* ---------- 6. COMMAND PALETTE ---------- */
   (function () {
     var pal = $("#pal"), input = $("#palIn"), list = $("#palList"), hint = $("#kbdHint");
     if (!pal || !input || !list || !D.commands) return;
@@ -374,7 +168,27 @@
     });
   })();
 
-  /* ---------- 9. BACK TO TOP ---------- */
+  /* ---------- CURSOR TARGETS ----------
+     TargetCursor locks onto .cursor-target, so the interactive elements are
+     tagged here rather than littering the markup with the class. */
+  (function () {
+    var TARGETS = [
+      [".nav__mark", "Top"], [".nav__links a", "Jump"], [".nav__theme", "Theme"],
+      [".pill-btn", "Open"], [".icon-btn", "Open"], [".inline-link", "Open"],
+      [".wcard", "View"], [".wcard__links a", "Open"],
+      [".exp__go", "Open"], [".merge", "Pull request"], [".repo", "Repo"],
+      [".post", "Read"], [".hm__foot a", "GitHub"], [".kbd-hint", "Search"],
+      [".feat__name", "Repo"], [".foot button", "Top"]
+    ];
+    TARGETS.forEach(function (pair) {
+      [].slice.call(document.querySelectorAll(pair[0])).forEach(function (el) {
+        el.classList.add("cursor-target");
+        if (!el.hasAttribute("data-cursor-label")) el.setAttribute("data-cursor-label", pair[1]);
+      });
+    });
+  })();
+
+  /* ---------- 7. BACK TO TOP ---------- */
   var top = $("#toTop");
   if (top) top.addEventListener("click", function () {
     window.scrollTo({ top: 0, behavior: "smooth" });

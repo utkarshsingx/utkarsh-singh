@@ -1,0 +1,2 @@
+/* Utilities only. No base layer: preflight would reset the site's own CSS. */
+@tailwind utilities;

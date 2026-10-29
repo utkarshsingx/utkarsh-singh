@@ -1,7 +1,7 @@
 # Static site: nothing to build, publish the repo root as-is.
 [build]
   publish = "."
-  command = ""
+  command = "npm ci && npm run build"
 
 [[headers]]
   for = "/*"
