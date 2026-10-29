@@ -3,7 +3,7 @@
 Second personal site for **Utkarsh Singh** — a technical-drawing portfolio:
 crosshair frame, hatch rules, one teal signal.
 
-Live: **https://utkarsh-singh.netlify.app/**
+Live: **https://utkarsh-singh-dev.netlify.app/**
 Companion site: [utkarshsingx.github.io](https://utkarshsingx.github.io/) (field-report layout)
 
 ## Stack
